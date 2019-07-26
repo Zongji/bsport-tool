@@ -71,8 +71,9 @@ public class ExtractTennisData {
 //            futures.add(future);
 
             try {
-                getGameDetail(info);
+//                getGameDetail(info);
             }catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("抓取每场比赛详细信息失败！");
                 return;
             }
@@ -173,6 +174,8 @@ public class ExtractTennisData {
             info.setPlayer2(playersNames.split("v")[1].trim());
             info.setDetailLink(detailLink);
             info.setResult(result);
+
+            getGameDetail(info);
             list.add(info);
         }
 
@@ -189,6 +192,7 @@ public class ExtractTennisData {
     }
 
     private static GameInfo getGameDetail(GameInfo info) throws IOException {
+        System.out.println("获取详细信息" + info.getDetailLink());
         Connection data = getConnection(info.getDetailLink());
         Document doc = data.get();
         Elements lis = doc.select(".list-group-item");
@@ -220,6 +224,12 @@ public class ExtractTennisData {
             detailList.add(detailStr);
         }
 
+
+        try {
+            Thread.sleep(15);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return info;
     }
 
