@@ -1,66 +1,55 @@
-package com.tools.jsoup;
+package com.tools.service;
 
 import com.tools.modle.GameInfo;
 import com.tools.tools.ExcelTool;
-import org.apache.commons.io.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-public class ExtractTennisData {
+import static com.tools.Constants.*;
 
 
-    public static final String host = "https://cn.bsportsfan.com";
-    public static Properties p = new Properties();
+@Slf4j
+@Service
+public class ExtractTennisDataService {
+
+
     public static ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-    static {
-        try {
-            p.load(new FileInputStream(new File("config.properties")));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("=======================");
-        System.out.println("配置信息:");
-        for (Map.Entry entry : p.entrySet()) {
-            System.out.println(entry.getKey() + "=" + entry.getValue());
-        }
-        System.out.println("=======================");
-
-    }
-
-    public static void main(String[] args) {
+    /**
+     *
+     * @param date
+     */
+    public void process(String date) throws Exception{
         long st = System.currentTimeMillis();
-        String date = p.getProperty("date").trim();
-        String excelName = date+"比赛数据.xls";
+        String excelName = EXCEL_DIR + date + "比赛数据.xls";
         File f = new File(excelName);
         if (f.exists()) {
-            System.out.println(excelName + "文件已经存在！");
+            log.info(excelName + "文件已经存在！");
             return;
         }
 
-        System.out.println("开始爬取网页信息");
+        log.info("开始爬取网页信息");
         List<GameInfo> list = new ArrayList<>();
         int totalPage = 1;
 
-        try {
-            getGameInfo(list, date, 1, totalPage);
-        }catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("开始爬取网页信息失败。" + e.getMessage());
-            return;
-        }
-        System.out.println("比赛信息列表信息抓取完成。");
-        System.out.println("开始抓取每场比赛详细信息，请稍等...");
+        getGameInfo(list, date, 1, totalPage);
+        log.info("比赛信息列表信息抓取完成。");
+        log.info("开始抓取每场比赛详细信息，请稍等...");
 
 
 
@@ -74,10 +63,10 @@ public class ExtractTennisData {
 //                getGameDetail(info);
             }catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("抓取每场比赛详细信息失败！");
+                log.info("抓取每场比赛详细信息失败！");
                 return;
             }
-//            System.out.println(info);
+//            log.info(info);
         }
 
 //        list.clear();
@@ -92,34 +81,25 @@ public class ExtractTennisData {
 //        }
 //        executorService.shutdown();
 
-        System.out.println("抓取比赛详细信息完成。");
-        System.out.println("开始生成Excel");
-        ExcelTool.create(date+"比赛数据",list);
-        System.out.println("开始生成Excel结束，数据抓取结束。");
-        System.out.println("耗时:" + (System.currentTimeMillis() - st)/1000 + "s");
+        log.info("抓取比赛详细信息完成。");
+        log.info("开始生成Excel");
+        String fileName = EXCEL_DIR + date;
+        ExcelTool.create(date,list);
+        log.info("开始生成Excel结束，数据抓取结束。");
+        log.info("耗时:" + (System.currentTimeMillis() - st)/1000 + "s");
     }
 
 
-    private static Connection getConnection(String link) {
-        Connection connection = Jsoup.connect(link);
+    private Connection getConnection(String link) {
+        Connection connection = Jsoup.connect(link).timeout(HTTP_TIMEOUT);
         Map<String, String> header = new HashMap<>();
         header.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36");
         header.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
         header.put("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
         header.put("Accept-Charset", "  GB2312,utf-8;q=0.7,*;q=0.7");
-        header.put("cookie", p.getProperty("cookie"));
+        header.put("cookie", "tz=Asia%2FShanghai; __cfduid=d9869fbe992fb2d2a92aef738594dd2f71563804652; sid=bukm81th09a3iv94ij8p3aipp7; tz=Asia%2FShanghai");
         return connection.headers(header);
     }
-
-    //https://cn.bsportsfan.com/ce/tennis/  默认当天，按照最近实际按排序
-
-    //https://cn.bsportsfan.com/cs/tennis/2019-07-22/  制定某一天怕，按照实际按先后排序的
-    //https://cn.bsportsfan.com/cs/tennis/2019-07-23/p.5
-    //https://cn.bsportsfan.com/cs/tennis/p.3
-
-    //odds
-    // https://cn.bsportsfan.com/rs/1736746/Amandine-Cazeaux-v-Taylor-Dean
-
 
     /**
      *
@@ -127,24 +107,24 @@ public class ExtractTennisData {
      * @return
      * @throws IOException
      */
-    private static void getGameInfo(List<GameInfo> list, String date, int currentPage, int totalPage) throws IOException {
-        String url = host + "/cs/tennis/" + date + "/p." + currentPage;
+    private void getGameInfo(List<GameInfo> list, String date, int currentPage, int totalPage) throws Exception {
+        String url = BSPORT_HOST + "/cs/tennis/" + date + "/p." + currentPage;
         Connection data = getConnection(url);
         Document doc = data.get();
 
         if (currentPage == 1) {
-            totalPage = getTotalPage(doc);
+//            totalPage = getTotalPage(doc);
         }
 
-        System.out.println("正在抓取网页信息:" + url);
-        System.out.println("totalPage:" + totalPage + " currentPage:"+ currentPage);
+        log.info("正在抓取网页信息:" + url);
+        log.info("totalPage:" + totalPage + " currentPage:"+ currentPage);
 
         Elements trs = doc.select(".table tr");
         for (Element tr : trs) {
             //赛事
             Element firstTd = tr.select("td").first();
             String gameName = firstTd.text();
-//            System.out.println(gameName);
+//            log.info(gameName);
             if (gameName.contains("男双") || gameName.contains("女双")) {
                 continue;
             }
@@ -152,20 +132,20 @@ public class ExtractTennisData {
             //时间
             Element timdTd = firstTd.nextElementSibling();
             String dateStr = timdTd.text();
-//            System.out.println(dateStr);
+//            log.info(dateStr);
 
             //name vs name
             Element nameTd = timdTd.nextElementSibling();
             String playersNames = nameTd.text();
-//            System.out.println(playersNames);
+//            log.info(playersNames);
 
             // link
             Element linkTd = nameTd.nextElementSibling().nextElementSibling();
             String result = linkTd.select("a").text();
-//            System.out.println(result);
+//            log.info(result);
 
-            String detailLink = host+ linkTd.select("a").attr("href");
-//            System.out.println(detailLink);
+            String detailLink = BSPORT_HOST + linkTd.select("a").attr("href");
+//            log.info(detailLink);
 
             GameInfo info = new GameInfo();
             info.setName(gameName);
@@ -185,14 +165,14 @@ public class ExtractTennisData {
         }
     }
 
-    private static int getTotalPage(Document doc) {
+    private int getTotalPage(Document doc) {
         Elements items = doc.select(".page-item");
         int pageSize = items.size() - 1;
         return pageSize;
     }
 
-    private static GameInfo getGameDetail(GameInfo info) throws IOException {
-        System.out.println("获取详细信息" + info.getDetailLink());
+    private GameInfo getGameDetail(GameInfo info) throws Exception {
+        log.info("获取详细信息" + info.getDetailLink());
         Connection data = getConnection(info.getDetailLink());
         Document doc = data.get();
         Elements lis = doc.select(".list-group-item");
@@ -225,16 +205,12 @@ public class ExtractTennisData {
         }
 
 
-        try {
-            Thread.sleep(15);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        Thread.sleep(15);
         return info;
     }
 
 
-    private static class GameDetailTask implements Callable<GameInfo> {
+    private class GameDetailTask implements Callable<GameInfo> {
         private GameInfo info;
 
         public GameDetailTask(GameInfo info) {

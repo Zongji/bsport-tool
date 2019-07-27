@@ -2,28 +2,39 @@ package com.tools.tools;
 
 import com.alibaba.fastjson.JSONArray;
 import com.tools.modle.GameInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
+import static com.tools.Constants.*;
+
+@Slf4j
 public class ExcelTool {
 
-
+    /**
+     * @param fileName  excel短名字
+     * @param list
+     */
     public static void create(String fileName, List<GameInfo> list) {
         Workbook wb = new HSSFWorkbook(); //97-2007
-        try  (OutputStream fileOut = new FileOutputStream(fileName + ".xls")) {
+        try  (OutputStream fileOut = new FileOutputStream(EXCEL_DIR + fileName + ".xls")) {
             Sheet sheet = wb.createSheet("网球比赛数据");
 
             writeHeadRow(sheet);
             writeDataRows(sheet, list);
             wb.write(fileOut);
         } catch (Exception e) {
-            System.err.println("生成Excel失败！");
-            e.printStackTrace();
+            log.error("生成Excel失败！", e);
         }
 
     }
@@ -101,9 +112,9 @@ public class ExcelTool {
         head.createCell(++i).setCellValue("倒数第30局");
     }
 
-    public static void main(String[] args) throws IOException {
-        String json = FileUtils.readFileToString(new File("data.json"), "utf-8");
-        List<GameInfo> list = JSONArray.parseArray(json, GameInfo.class);
-        create("1111", list);
-    }
+//    public static void main(String[] args) throws IOException {
+//        String json = FileUtils.readFileToString(new File("data.json"), "utf-8");
+//        List<GameInfo> list = JSONArray.parseArray(json, GameInfo.class);
+//        create("1111", list);
+//    }
 }
