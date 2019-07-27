@@ -1,5 +1,6 @@
 package com.tools.controller;
 
+import com.tools.modle.ExcelFile;
 import com.tools.service.DirService;
 import com.tools.service.ExtractTennisDataService;
 import com.tools.modle.ResponseObject;
@@ -70,7 +71,7 @@ public class TennisRestController {
     @GetMapping("/list-dir")
     public Object listExcelDir() {
         ResponseObject<Object> res = new ResponseObject<>();
-        List<String> list = new ArrayList();
+        List<ExcelFile> list = new ArrayList();
         try {
             list.addAll(dirService.listDir());
         }catch (Exception e) {

@@ -1,6 +1,7 @@
 package com.tools.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tools.modle.ExcelFile;
 import com.tools.modle.GameInfo;
 import com.tools.tools.ExcelTool;
 import org.apache.commons.io.FileUtils;
@@ -31,15 +32,20 @@ public class DirService {
         ExcelTool.create(EXCEL_DIR + random.nextInt(1000) + "", list);
     }
 
-    public List<String> listDir() throws IOException {
-        List<String> list = new ArrayList<>();
+    public List<ExcelFile> listDir() throws IOException {
+        List<ExcelFile> list = new ArrayList<>();
         File dir = new File(EXCEL_DIR);
         if (!dir.exists()) {
             dir.mkdir();
         }
         File[] files = dir.listFiles();
         for (int i = 0; i < files.length; i++) {
-            list.add(files[i].getName());
+            File f = files[i];
+            ExcelFile excelFile = new ExcelFile();
+            excelFile.setModifyDate(f.lastModified());
+            excelFile.setName(f.getName());
+            excelFile.setSize(f.length()/1024);
+            list.add(excelFile);
         }
         return list;
     }

@@ -118,6 +118,8 @@ public class ExtractTennisDataService {
                 continue;
             }
 
+
+
             //时间
             Element timdTd = firstTd.nextElementSibling();
             String dateStr = timdTd.text();
@@ -132,6 +134,10 @@ public class ExtractTennisDataService {
             Element linkTd = nameTd.nextElementSibling().nextElementSibling();
             String result = linkTd.select("a").text();
 //            log.info(result);
+            if (result.contains("away") || result.contains("home")
+                    || result.contains("已取消")) {
+                continue;
+            }
 
             String detailLink = BSPORT_HOST_EN + linkTd.select("a").attr("href");
 //            log.info(detailLink);

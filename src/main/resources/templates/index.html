@@ -46,9 +46,32 @@
             文件列表：
             <ol>
                 <li v-for="file in fileList">
-                    <a :href="'excel/download/'+ file">{{ file }}</a>
+                    <a :href="'excel/download/'+ file.name">{{ file.name }}</a>
+                    <span>{{file.size}}k</span>
+                    <span>{{dateFormat1(file.modifyDate)}}</span>
                 </li>
             </ol>
+
+           <!-- <el-table
+                    :data="fileList"
+                    stripe
+                    style="width: 100%">
+                <el-table-column
+                        prop="name"
+                        label="文件名"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="size"
+                        label="文件大小(k)"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        :formatter="dateFormat"
+                        prop="modifyDate"
+                        label="更新时间">
+                </el-table-column>
+            </el-table>-->
 
            <!-- <ol>
                 <li v-for="todo in todos">
@@ -94,6 +117,16 @@
         },
 
         methods: {
+
+            dateFormat1:function(date){
+                var t=new Date(date);//row 表示一行数据, updateTime 表示要格式化的字段名称
+                return t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate()+" "+t.getHours()+":"+t.getMinutes()+":"+t.getSeconds();
+            },
+            dateFormat:function(row,column){
+                var t=new Date(row.modifyDate);//row 表示一行数据, updateTime 表示要格式化的字段名称
+                return t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate()+" "+t.getHours()+":"+t.getMinutes()+":"+t.getSeconds()+"."+t.getMilliseconds();
+            },
+
             reverseMessage: function () {
                 this.message = this.message.split('').reverse().join('')
             },
