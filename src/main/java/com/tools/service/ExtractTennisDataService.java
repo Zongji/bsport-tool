@@ -159,18 +159,22 @@ public class ExtractTennisDataService {
         return pageSize;
     }
 
-    public GameInfo getGameInfoDetail(GameInfo info) throws Exception {
+    public GameInfo getGameInfoDetail(GameInfo info) {
         log.info("获取详细信息：" + info.getDetailLink());
-        Connection data = HttpTools.getConnection(info.getDetailLink());
-        Document doc = data.get();
+        try {
+            Connection data = HttpTools.getConnection(info.getDetailLink());
+            Document doc = data.get();
 
-        //获取英文名
-        parsePlayerName(doc, info);
+            //获取英文名
+            parsePlayerName(doc, info);
 
-        // get event
-        parseEventList(doc, info);
+            // get event
+            parseEventList(doc, info);
 
-        Thread.sleep(15);
+            Thread.sleep(15);
+        }catch (Exception e) {
+            log.error("出错了!", e);
+        }
         return info;
     }
 
