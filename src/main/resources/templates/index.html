@@ -2,38 +2,47 @@
 <html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
     <title>Title</title>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <!--<link type="text/css" href="/css/main.css" rel="stylesheet" />-->
 
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="//unpkg.com/element-ui@2.11.0/lib/index.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <!--<script type="text/javascript" src="//apps.bdimg.com/libs/jquery/1.11.3/jquery.min.js"></script>-->
 
 </head>
 <body class="main">
+<div id="app">
 
 
-<el-row id="app">
+<el-row >
+    <el-col :span="24">
+        <h2>bsportfan网球比赛</h2>
+    </el-col>
     <el-col :span="24">
         <div class="grid-content bg-purple">
-            <!--{{ message }}-->
-            <!--<button v-on:click="reverseMessage">反转消息11111</button>-->
             <el-date-picker
                     v-model="dateStr"
                     type="date"
+                    format="yyyy-MM-dd"
+                    value-format="yyyy-MM-dd"
                     placeholder="选择日期">
             </el-date-picker>
-
-            <!--<input type="date" v-model="dateStr">-->
-            <el-button @click="getDate">爬取网球比赛信息</el-button>
+            <el-button type="primary" @click="getDate">爬取网球比赛信息</el-button>
+            <el-dialog :visible.sync="visible" title="Message">
+                <p>{{resMsg}}</p>
+            </el-dialog>
+        </div>
+        <div>
+            <span>已选择日期: {{dateStr}}</span>
         </div>
     </el-col>
 </el-row>
+
 <el-row>
     <el-col :span="24">
         <div class="grid-content bg-purple-light">
+            <span class="el-icon-document-copy"></span>
             文件列表：
             <ol>
                 <li v-for="file in fileList">
@@ -41,9 +50,9 @@
                 </li>
             </ol>
 
-            <!--<ol>
+           <!-- <ol>
                 <li v-for="todo in todos">
-                    {{ todo.text }}
+                    {{todo.text}}
                 </li>
             </ol>-->
         </div>
@@ -51,6 +60,7 @@
 
 </el-row>
 
+</div>
 </body>
 
 
@@ -63,6 +73,7 @@
             dateStr: '',
             message: 'Hello Vue!',
             resMsg: '',
+            visible: false,
             log: '',
             fileList: [],
             todos: [
@@ -71,7 +82,6 @@
                 { text: '整个牛项目' }
             ],
             timmer: '',
-
         },
         created: function () {
             // `this` 指向 vm 实例
@@ -90,23 +100,33 @@
                 console.info(this.dateStr);
             },
             getDate: function () {
-                console.info(this.dateStr);
+
+                console.info('date:' + this.dateStr);
+                if (this.dateStr === '') {
+                    this.resMsg = "日期不能为空！";
+                    this.visible = true;
+                    return;
+                }
+
+                var vm = this;
                 this.$http.get('/rest/history/' + this.dateStr).then(function (response) {
-                    console.info(response.data);
-                    this.resMsg = response.data;
+                    console.info('res:' + response.data);
+                    vm.resMsg = "正在处理中，请稍后刷新页面"
+                    vm.visible = true;
                 });
             },
             listDir: function () {
-                this.fileList = [];
-                files = this.fileList;
-                console.info('list dir' + files);
+                var vm = this;
                 this.$http.get('/rest/list-dir').then(function (response) {
                     console.info(response.data.data);
                     var data = response.data.data;
-                    for (var i =0;i< data.length; i++ ) {
-                        files.push(data[i]);
+                    for (var i = 0;i< data.length; i++ ) {
+                        console.info(data[i]);
+                        vm.fileList.push(data[i]);
                     }
+                    console.info('list dir' + vm.fileList);
                 });
+
             },
 
         }

@@ -40,12 +40,12 @@ public class TennisRestController {
         }
 
 
-        try {
-            extractTennisDataService.process(date);
-        }catch (Exception e) {
-            log.error("获取失败！", e);
-            return "error";
-        }
+//        try {
+//            extractTennisDataService.process(date);
+//        }catch (Exception e) {
+//            log.error("获取失败！", e);
+//            return "error";
+//        }
 
         return "ok";
     }

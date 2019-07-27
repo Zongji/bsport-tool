@@ -182,10 +182,14 @@ public class ExtractTennisDataService {
             String text = li.text();
 
             String detailStr = "";
-            if (text.contains("? ?")|| text.contains("保住")) {
-                if (text.contains(info.getPlayer1())) {
+            if (text.contains("? ?") || text.contains("保住")) {
+                String text1 = text;
+                if (text.contains("? ?") && text.contains("保住")) {
+                    text1 = text.replace("??", "");
+                }
+                if (text1.contains(info.getPlayer1())) {
                     detailStr = detailStr+"A";
-                }else if (text.contains(info.getPlayer2())) {
+                }else if (text1.contains(info.getPlayer2())) {
                     detailStr = detailStr + "B";
                 }
 
@@ -198,7 +202,15 @@ public class ExtractTennisDataService {
                 String score = text.substring(text.indexOf("分")-2, text.indexOf("分"));
                 detailStr = detailStr + score;
 
-            }else {
+            }else if (text.contains("发球局获胜")) {
+                if (text.contains(info.getPlayer1())) {
+                    detailStr = "A";
+                }else if (text.contains(info.getPlayer2())) {
+                    detailStr = "B";
+                }
+                detailStr = detailStr + "H0";
+            }
+            else {
                 detailStr = text;
             }
             detailList.add(detailStr);
