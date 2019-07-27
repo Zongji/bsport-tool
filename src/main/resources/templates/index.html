@@ -12,7 +12,7 @@
 
 </head>
 <body class="main">
-<div id="app">
+<div id="app" v-loading="loading">
 
 
 <el-row >
@@ -66,13 +66,14 @@
 
 
 <script>
-    Vue.prototype.$http = axios
+    Vue.prototype.$http = axios;
     var app = new Vue({
         el: '#app',
         data: {
             dateStr: '',
             message: 'Hello Vue!',
             resMsg: '',
+            loading: false,
             visible: false,
             log: '',
             fileList: [],
@@ -100,7 +101,6 @@
                 console.info(this.dateStr);
             },
             getDate: function () {
-
                 console.info('date:' + this.dateStr);
                 if (this.dateStr === '') {
                     this.resMsg = "日期不能为空！";
@@ -109,24 +109,35 @@
                 }
 
                 var vm = this;
-                this.$http.get('/rest/history/' + this.dateStr).then(function (response) {
-                    console.info('res:' + response.data);
-                    vm.resMsg = "正在处理中，请稍后刷新页面"
-                    vm.visible = true;
-                });
+                vm.loading = true;
+                this.$http.get('/rest/history/' + this.dateStr)
+                    .then(function (response) {
+                        console.info('res:' + response.data);
+                        vm.loading = false;
+                        this.listDir();
+                    })
+                    .catch(function (reason) {
+                        vm.resMsg = "出错了！";
+                        vm.visible = true;
+                        vm.loading = false;
+                    });
             },
             listDir: function () {
                 var vm = this;
-                this.$http.get('/rest/list-dir').then(function (response) {
-                    console.info(response.data.data);
-                    var data = response.data.data;
-                    for (var i = 0;i< data.length; i++ ) {
-                        console.info(data[i]);
-                        vm.fileList.push(data[i]);
-                    }
-                    console.info('list dir' + vm.fileList);
-                });
-
+                this.$http.get('/rest/list-dir')
+                    .then(function (response) {
+                        console.info(response.data.data);
+                        var data = response.data.data;
+                        for (var i = 0;i< data.length; i++ ) {
+                            console.info(data[i]);
+                            vm.fileList.push(data[i]);
+                        }
+                        console.info('list dir' + vm.fileList);
+                    })
+                    .catch(function (error) {
+                        vm.resMsg = "出现错误了";
+                        vm.visible = true;
+                    });
             },
 
         }

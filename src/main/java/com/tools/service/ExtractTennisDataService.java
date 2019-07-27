@@ -8,17 +8,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import static com.tools.Constants.*;
 
@@ -47,27 +47,29 @@ public class ExtractTennisDataService {
         List<GameInfo> list = new ArrayList<>();
         int totalPage = 1;
 
-        getGameInfo(list, date, 1, totalPage);
+        getGameInfo(list, date, 1, totalPage); //已经包含详情
         log.info("比赛信息列表信息抓取完成。");
-        log.info("开始抓取每场比赛详细信息，请稍等...");
 
+//        log.info("开始抓取每场比赛详细信息，请稍等...");
+//        for(GameInfo info : list) {
+//            getGameDetail(info);
+////            log.info(info);
+//        }
 
-
-        List<Future<GameInfo>> futures = new ArrayList<>();
-        for(GameInfo info : list) {
-
+//        List<Future<GameInfo>> futures = new ArrayList<>();
+//        for(GameInfo info : list) {
 //            Future<GameInfo> future = executorService.submit(new GameDetailTask(info));
 //            futures.add(future);
-
-            try {
+//
+//            try {
 //                getGameDetail(info);
-            }catch (Exception e) {
-                e.printStackTrace();
-                log.info("抓取每场比赛详细信息失败！");
-                return;
-            }
-//            log.info(info);
-        }
+//            }catch (Exception e) {
+//                e.printStackTrace();
+//                log.info("抓取每场比赛详细信息失败！");
+//                return;
+//            }
+////            log.info(info);
+//        }
 
 //        list.clear();
 //        for (Future<GameInfo> future: futures) {
@@ -80,8 +82,8 @@ public class ExtractTennisDataService {
 //            }
 //        }
 //        executorService.shutdown();
+//        log.info("抓取比赛详细信息完成。");
 
-        log.info("抓取比赛详细信息完成。");
         log.info("开始生成Excel");
         String fileName = EXCEL_DIR + date;
         ExcelTool.create(date,list);
@@ -113,7 +115,7 @@ public class ExtractTennisDataService {
         Document doc = data.get();
 
         if (currentPage == 1) {
-//            totalPage = getTotalPage(doc);
+            totalPage = getTotalPage(doc);
         }
 
         log.info("正在抓取网页信息:" + url);
@@ -172,7 +174,7 @@ public class ExtractTennisDataService {
     }
 
     private GameInfo getGameDetail(GameInfo info) throws Exception {
-        log.info("获取详细信息" + info.getDetailLink());
+        log.info("获取详细信息：" + info.getDetailLink());
         Connection data = getConnection(info.getDetailLink());
         Document doc = data.get();
         Elements lis = doc.select(".list-group-item");
@@ -215,7 +217,6 @@ public class ExtractTennisDataService {
             }
             detailList.add(detailStr);
         }
-
 
         Thread.sleep(15);
         return info;

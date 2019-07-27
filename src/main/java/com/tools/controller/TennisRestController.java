@@ -34,18 +34,19 @@ public class TennisRestController {
             if (d.after(new Date())) {
                 return "日期不合法,不能指定未来日期";
             }
+
+//            Thread.sleep(2000);
         }catch (Exception e) {
             log.error("不合法的日期", e);
             return "error";
         }
 
-
-//        try {
-//            extractTennisDataService.process(date);
-//        }catch (Exception e) {
-//            log.error("获取失败！", e);
-//            return "error";
-//        }
+        try {
+            extractTennisDataService.process(date);
+        }catch (Exception e) {
+            log.error("获取失败！", e);
+            return "error";
+        }
 
         return "ok";
     }
