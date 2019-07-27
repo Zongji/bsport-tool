@@ -112,9 +112,15 @@
                 vm.loading = true;
                 this.$http.get('/rest/history/' + this.dateStr)
                     .then(function (response) {
-                        console.info('res:' + response.data);
+                        var res = response.data;
+                        console.info('res:' + res);
                         vm.loading = false;
-                        this.listDir();
+
+                        if (res.code == 0){
+                            this.listDir();
+                        }else {
+
+                        }
                     })
                     .catch(function (reason) {
                         vm.resMsg = "出错了！";

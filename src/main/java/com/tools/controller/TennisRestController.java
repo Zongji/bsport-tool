@@ -28,27 +28,33 @@ public class TennisRestController {
     @GetMapping("/history/{date}")
     public Object getTennisHistory(@PathVariable("date") String date) {
         log.info("date:{}", date);
+
+        ResponseObject<Object> res = new ResponseObject<>();
+
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date d = sf.parse(date);
             if (d.after(new Date())) {
-                return "日期不合法,不能指定未来日期";
+                res.error("日期不合法,不能指定未来日期");
+                return res;
             }
-
 //            Thread.sleep(2000);
         }catch (Exception e) {
             log.error("不合法的日期", e);
-            return "error";
+            res.error("不合法的日期格式");
+            return res;
         }
 
         try {
             extractTennisDataService.process(date);
+            res.success("成功！");
         }catch (Exception e) {
             log.error("获取失败！", e);
-            return "error";
+            res.error("获取失败！" + e.getMessage());
+            return res;
         }
 
-        return "ok";
+        return res;
     }
 
 
@@ -69,8 +75,8 @@ public class TennisRestController {
             list.addAll(dirService.listDir());
         }catch (Exception e) {
             log.error("error!", e);
+            return res.error("error!"+ e.getMessage());
         }
-        res.setData(list);
-        return res;
+        return res.success(list);
     }
 }

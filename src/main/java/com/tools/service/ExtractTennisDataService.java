@@ -34,12 +34,12 @@ public class ExtractTennisDataService {
      */
     public void process(String date) throws Exception{
         long st = System.currentTimeMillis();
-        String excelName = EXCEL_DIR + date + ".xls";
-        File f = new File(excelName);
-        if (f.exists()) {
-            log.error(excelName + "文件已经存在！");
-            throw new Exception(excelName + "文件已经存在！");
-        }
+//        String excelName = EXCEL_DIR + date + ".xls";
+//        File f = new File(excelName);
+//        if (f.exists()) {
+//            log.error(excelName + "文件已经存在！");
+//            throw new Exception(excelName + "文件已经存在！");
+//        }
 
         log.info("开始抓取网页信息");
         List<GameInfo> list = new ArrayList<>();
