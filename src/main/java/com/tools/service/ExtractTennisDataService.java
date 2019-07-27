@@ -9,6 +9,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -191,16 +192,18 @@ public class ExtractTennisDataService {
             String text = li.text();
 
             String eventResult = "";
-            if (text.contains(HOLDS_TO_LOVE)) {
-                String player = getPlayer(info, text);
-                eventResult = player + "H0";
-            }
-            else if (text.contains(HOLDS_TO)) {
-                String player = getPlayer(info, text);
 
-                //提取分数
-                String score = text.substring(text.indexOf(HOLDS_TO) + HOLDS_TO.length() + 1);
-                eventResult = player + "H" + score;
+            if (text.contains(HOLDS_TO)) {
+                if (text.contains(HOLDS_TO_LOVE)) {
+                    String player = getPlayer(info, text);
+                    eventResult = player + "H0";
+                } else {
+                    String player = getPlayer(info, text);
+
+                    //提取分数
+                    String score = text.substring(text.indexOf(HOLDS_TO) + HOLDS_TO.length() + 1);
+                    eventResult = player + "H" + score;
+                }
             }else if (text.contains(BREAKS_TO)) {
                 String player = getPlayer(info, text);
                 String score = text.substring(text.indexOf(BREAKS_TO) + BREAKS_TO.length() + 1);
@@ -229,12 +232,11 @@ public class ExtractTennisDataService {
      * @param info
      */
     private void parsePlayerName(Document doc, GameInfo info) {
-        Elements elements = doc.select(".col-md-8 .table tr");
-        Element firstTr = elements.first();
-        Element nameA = firstTr.child(0);
-        info.setPlayer1En(nameA.text());
+        Elements elements = doc.select(".col-md-6 a");
+        Element firstA = elements.get(0);
+        info.setPlayer1En(firstA.text());
 
-        Element nameB = firstTr.child(2);
+        Element nameB = elements.get(1);
         info.setPlayer2En(nameB.text());
     }
 
