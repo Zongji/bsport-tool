@@ -2,9 +2,9 @@ package com.tools.service;
 
 import com.tools.modle.GameInfo;
 import com.tools.tools.ExcelTool;
+import com.tools.tools.HttpTools;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -13,9 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,7 +26,7 @@ import static com.tools.Constants.*;
 public class ExtractTennisDataService {
 
 
-    public static ExecutorService executorService = Executors.newFixedThreadPool(10);
+//    public static ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     /**
      *
@@ -47,12 +45,12 @@ public class ExtractTennisDataService {
         List<GameInfo> list = new ArrayList<>();
         int totalPage = 1;
 
-        getGameInfo(list, date, 1, totalPage); //已经包含详情
+        getGameInfoList(list, date, 1, totalPage); //已经包含详情
         log.info("比赛信息列表信息抓取完成。");
 
 //        log.info("开始抓取每场比赛详细信息，请稍等...");
 //        for(GameInfo info : list) {
-//            getGameDetail(info);
+//            getGameInfoDetail(info);
 ////            log.info(info);
 //        }
 
@@ -62,7 +60,7 @@ public class ExtractTennisDataService {
 //            futures.add(future);
 //
 //            try {
-//                getGameDetail(info);
+//                getGameInfoDetail(info);
 //            }catch (Exception e) {
 //                e.printStackTrace();
 //                log.info("抓取每场比赛详细信息失败！");
@@ -91,27 +89,15 @@ public class ExtractTennisDataService {
         log.info("耗时:" + (System.currentTimeMillis() - st)/1000 + "s");
     }
 
-
-    private Connection getConnection(String link) {
-        Connection connection = Jsoup.connect(link).timeout(HTTP_TIMEOUT);
-        Map<String, String> header = new HashMap<>();
-        header.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36");
-        header.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
-        header.put("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
-        header.put("Accept-Charset", "  GB2312,utf-8;q=0.7,*;q=0.7");
-        header.put("cookie", "tz=Asia%2FShanghai; __cfduid=d9869fbe992fb2d2a92aef738594dd2f71563804652; sid=bukm81th09a3iv94ij8p3aipp7; tz=Asia%2FShanghai");
-        return connection.headers(header);
-    }
-
     /**
      *
      * @param currentPage 默认1,第1页
      * @return
      * @throws IOException
      */
-    private void getGameInfo(List<GameInfo> list, String date, int currentPage, int totalPage) throws Exception {
-        String url = BSPORT_HOST + "/cs/tennis/" + date + "/p." + currentPage;
-        Connection data = getConnection(url);
+    private void getGameInfoList(List<GameInfo> list, String date, int currentPage, int totalPage) throws Exception {
+        String url = BSPORT_HOST_CN + "/cs/tennis/" + date + "/p." + currentPage;
+        Connection data = HttpTools.getConnection(url);
         Document doc = data.get();
 
         if (currentPage == 1) {
@@ -146,7 +132,7 @@ public class ExtractTennisDataService {
             String result = linkTd.select("a").text();
 //            log.info(result);
 
-            String detailLink = BSPORT_HOST + linkTd.select("a").attr("href");
+            String detailLink = BSPORT_HOST_EN + linkTd.select("a").attr("href");
 //            log.info(detailLink);
 
             GameInfo info = new GameInfo();
@@ -157,13 +143,13 @@ public class ExtractTennisDataService {
             info.setDetailLink(detailLink);
             info.setResult(result);
 
-            getGameDetail(info);
+            this.getGameInfoDetail(info);
             list.add(info);
         }
 
         currentPage ++;
         if (totalPage > 1 && currentPage <= totalPage) {
-            getGameInfo(list, date, currentPage, totalPage);
+            getGameInfoList(list, date, currentPage, totalPage);
         }
     }
 
@@ -173,53 +159,79 @@ public class ExtractTennisDataService {
         return pageSize;
     }
 
-    private GameInfo getGameDetail(GameInfo info) throws Exception {
+    public GameInfo getGameInfoDetail(GameInfo info) throws Exception {
         log.info("获取详细信息：" + info.getDetailLink());
-        Connection data = getConnection(info.getDetailLink());
+        Connection data = HttpTools.getConnection(info.getDetailLink());
         Document doc = data.get();
+
+        //获取英文名
+        parsePlayerName(doc, info);
+
+        // get event
+        parseEventList(doc, info);
+
+        Thread.sleep(15);
+        return info;
+    }
+
+    /**
+     *
+     * @param doc
+     * @param info
+     */
+    private void parseEventList(Document doc, GameInfo info) {
         Elements lis = doc.select(".list-group-item");
         List<String> detailList = new ArrayList<>();
         info.setList(detailList);
         for (Element li : lis) {
             String text = li.text();
 
-            String detailStr = "";
-            if (text.contains("? ?") || text.contains("保住")) {
-                String text1 = text;
-                if (text.contains("? ?") && text.contains("保住")) {
-                    text1 = text.replace("??", "");
-                }
-                if (text1.contains(info.getPlayer1())) {
-                    detailStr = detailStr+"A";
-                }else if (text1.contains(info.getPlayer2())) {
-                    detailStr = detailStr + "B";
-                }
+            String eventResult = "";
+            if (text.contains(HOLDS_TO_LOVE)) {
+                String player = getPlayer(info, text);
+                eventResult = player + "H0";
+            }
+            else if (text.contains(HOLDS_TO)) {
+                String player = getPlayer(info, text);
 
-                if (text.contains("? ?")) {
-                    detailStr = detailStr + "B";
-                }else if (text.contains("保住")) {
-                    detailStr = detailStr + "H";
-                }
                 //提取分数
-                String score = text.substring(text.indexOf("分")-2, text.indexOf("分"));
-                detailStr = detailStr + score;
-
-            }else if (text.contains("发球局获胜")) {
-                if (text.contains(info.getPlayer1())) {
-                    detailStr = "A";
-                }else if (text.contains(info.getPlayer2())) {
-                    detailStr = "B";
-                }
-                detailStr = detailStr + "H0";
+                String score = text.substring(text.indexOf(HOLDS_TO) + HOLDS_TO.length() + 1);
+                eventResult = player + "H" + score;
+            }else if (text.contains(BREAKS_TO)) {
+                String player = getPlayer(info, text);
+                String score = text.substring(text.indexOf(BREAKS_TO) + BREAKS_TO.length() + 1);
+                eventResult = player + "B" + score;
             }
             else {
-                detailStr = text;
+                eventResult = text;
             }
-            detailList.add(detailStr);
+            detailList.add(eventResult);
         }
+    }
 
-        Thread.sleep(15);
-        return info;
+    private String getPlayer(GameInfo info, String text) {
+        String player = "";
+        if (text.contains(info.getPlayer1En())) {
+            player = "A";
+        } else if (text.contains(info.getPlayer2En())) {
+            player = "B";
+        }
+        return player;
+    }
+
+    /**
+     * 解析英文名
+     * @param doc
+     * @param info
+     */
+    private void parsePlayerName(Document doc, GameInfo info) {
+        Elements elements = doc.select(".col-md-8 .table tr");
+        Element firstTr = elements.first();
+        Element nameA = firstTr.child(0);
+        info.setPlayer1En(nameA.text());
+
+        Element nameB = firstTr.child(2);
+        info.setPlayer2En(nameB.text());
     }
 
 
@@ -231,7 +243,7 @@ public class ExtractTennisDataService {
         }
         @Override
         public GameInfo call() throws Exception {
-            return getGameDetail(this.info);
+            return getGameInfoDetail(this.info);
         }
     }
 

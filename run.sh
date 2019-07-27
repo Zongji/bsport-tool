@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
 
-java -jar bsportsfan-tool-1.0-SNAPSHOT.jar &
+#mvn install -Dmaven.test.skip=true spring-boot:run
+
+mvn clean spring-boot:run &
+
 
