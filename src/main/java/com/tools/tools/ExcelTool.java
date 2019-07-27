@@ -112,9 +112,5 @@ public class ExcelTool {
         head.createCell(++i).setCellValue("倒数第30局");
     }
 
-//    public static void main(String[] args) throws IOException {
-//        String json = FileUtils.readFileToString(new File("data.json"), "utf-8");
-//        List<GameInfo> list = JSONArray.parseArray(json, GameInfo.class);
-//        create("1111", list);
-//    }
+
 }
