@@ -16,4 +16,6 @@ public class Constants {
     public static final String HOLDS_TO_LOVE = "holds to love";
     public static final String HOLDS_TO = "holds to";
     public static final String BREAKS_TO = "breaks to";
+    public static final String BREAKS_TO_LOVE = "breaks to love";
+
 }

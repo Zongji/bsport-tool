@@ -205,9 +205,14 @@ public class ExtractTennisDataService {
                     eventResult = player + "H" + score;
                 }
             }else if (text.contains(BREAKS_TO)) {
-                String player = getPlayer(info, text);
-                String score = text.substring(text.indexOf(BREAKS_TO) + BREAKS_TO.length() + 1);
-                eventResult = player + "B" + score;
+                if (text.contains(BREAKS_TO_LOVE)) {
+                    String player = getPlayer(info, text);
+                    eventResult = player + "B0";
+                }else {
+                    String player = getPlayer(info, text);
+                    String score = text.substring(text.indexOf(BREAKS_TO) + BREAKS_TO.length() + 1);
+                    eventResult = player + "B" + score;
+                }
             }
             else {
                 eventResult = text;
