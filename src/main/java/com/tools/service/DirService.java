@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tools.modle.ExcelFile;
 import com.tools.modle.GameInfo;
 import com.tools.tools.ExcelTool;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.io.*;
 import java.util.Random;
@@ -47,8 +49,12 @@ public class DirService {
             excelFile.setSize(f.length()/1024);
             list.add(excelFile);
         }
+
+        Collections.sort(list);
         return list;
     }
+
+
 
     public void download(HttpServletResponse response, String fileName) throws Exception {
         String path = EXCEL_DIR + fileName;

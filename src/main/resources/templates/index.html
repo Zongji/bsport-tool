@@ -47,21 +47,22 @@
             <ol>
                 <li v-for="file in fileList">
                     <a :href="'excel/download/'+ file.name">{{ file.name }}</a>
-                    <span>{{file.size}}k</span>
-                    <span>{{dateFormat1(file.modifyDate)}}</span>
+                    <span style="padding-left: 20px">{{dateFormat1(file.modifyDate)}}</span>
                 </li>
             </ol>
 
-           <!-- <el-table
+           <!--<el-table
                     :data="fileList"
                     stripe
                     style="width: 100%">
                 <el-table-column
+                        :formatter="filenameFormatter"
                         prop="name"
                         label="文件名"
                         width="180">
                 </el-table-column>
                 <el-table-column
+                        :formatter="filesize"
                         prop="size"
                         label="文件大小(k)"
                         width="180">
@@ -124,7 +125,14 @@
             },
             dateFormat:function(row,column){
                 var t=new Date(row.modifyDate);//row 表示一行数据, updateTime 表示要格式化的字段名称
-                return t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate()+" "+t.getHours()+":"+t.getMinutes()+":"+t.getSeconds()+"."+t.getMilliseconds();
+                return t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate()+" "+t.getHours()+":"+t.getMinutes()+":"+t.getSeconds();
+            },
+            filesize:function(row,column){
+                return row.size + "K";
+            },
+            filenameFormatter: function(row, column) {
+                var a = "<a href=\"excel/download/" + row.name + "\">" + row.name + "</a>";
+                return a;
             },
 
             reverseMessage: function () {
