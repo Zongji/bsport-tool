@@ -143,7 +143,7 @@
 
                 var vm = this;
                 vm.loading = true;
-                this.$http.get('/rest/history/' + this.dateStr)
+                this.$http.get('/rest/history/' + this.dateStr,{},{timeout: 200000})
                     .then(function (response) {
                         var res = response.data;
                         console.info('res:' + res);
