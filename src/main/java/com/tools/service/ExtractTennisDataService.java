@@ -2,22 +2,19 @@ package com.tools.service;
 
 import com.tools.modle.GameInfo;
 import com.tools.tools.ExcelTool;
-import com.tools.tools.HttpTools;
+import com.tools.tools.HttpService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.tools.Constants.*;
 
@@ -26,7 +23,8 @@ import static com.tools.Constants.*;
 @Service
 public class ExtractTennisDataService {
 
-
+    @Autowired
+    private HttpService httpService;
 //    public static ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     /**
@@ -98,7 +96,7 @@ public class ExtractTennisDataService {
      */
     private void getGameInfoList(List<GameInfo> list, String date, int currentPage, int totalPage) throws Exception {
         String url = BSPORT_HOST_CN + "/cs/tennis/" + date + "/p." + currentPage;
-        Connection data = HttpTools.getConnection(url);
+        Connection data = httpService.getConnection(url);
         Document doc = data.get();
 
         if (currentPage == 1) {
@@ -169,7 +167,7 @@ public class ExtractTennisDataService {
     public GameInfo getGameInfoDetail(GameInfo info) {
         log.info("获取详细信息：" + info.getDetailLink());
         try {
-            Connection data = HttpTools.getConnection(info.getDetailLink());
+            Connection data = httpService.getConnection(info.getDetailLink());
             Document doc = data.get();
 
             //获取英文名
