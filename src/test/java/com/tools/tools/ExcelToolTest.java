@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Random;
 
 import static com.tools.Constants.EXCEL_DIR;
 import static org.junit.Assert.*;
@@ -29,5 +30,13 @@ public class ExcelToolTest {
         }catch (Exception e) {
 
         }
+
+
+        Random random = new Random();
+        int r = random.nextInt(9);
+
+        System.out.println(r);
     }
+
+
 }

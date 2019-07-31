@@ -8,8 +8,13 @@ public class Constants {
             File.separator +  "excel" +
             File.separator;
 
-    public static String BSPORT_HOST_EN = "https://bsportsfan.com";
-    public static String BSPORT_HOST_CN = "https://cn.bsportsfan.com";
+//    public static String BSPORT_HOST_EN = "https://bsportsfan.com";
+//    public static String BSPORT_HOST_CN = "https://cn.bsportsfan.com";
+
+    public static String BSPORT_HOST_EN = "https://betsapi.com";
+    public static String BSPORT_HOST_CN = "https://cn.betsapi.com";
+    public static String REFERER_URL = "https://cn.betsapi.com/ce/tennis/";
+
 
     public static int HTTP_TIMEOUT = 9000;
 

@@ -15,7 +15,13 @@ public class ExtractTennisDataServiceTest extends BaseTest {
 
     @Test
     public void process() {
+        String date = "2019-07-28";
 
+        try {
+            extractTennisDataService.process(date);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -23,7 +29,7 @@ public class ExtractTennisDataServiceTest extends BaseTest {
         GameInfo gameInfo = new GameInfo();
 //        gameInfo.setDetailLink("https://bsportsfan.com/r/1745705/Gergely-Madarasz-v-Duje-Kekez");
 
-        gameInfo.setDetailLink("https://bsportsfan.com/r/1750439/Leylah-Annie-Fernandez-v-Maddison-Inglis");
+        gameInfo.setDetailLink("https://betsapi.com/r/1750439/Leylah-Annie-Fernandez-v-Maddison-Inglis");
         try {
             GameInfo info = extractTennisDataService.getGameInfoDetail(gameInfo);
             Assert.assertNotNull(info.getList());

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import static com.tools.Constants.*;
@@ -84,7 +85,7 @@ public class ExtractTennisDataService {
         log.info("开始生成Excel");
         String fileName = EXCEL_DIR + date;
         ExcelTool.create(date,list);
-        log.info("开始生成Excel结束，数据抓取结束。");
+        log.info("开始生成Excel结束，数据抓取结束。Excel：" + fileName);
         log.info("耗时:" + (System.currentTimeMillis() - st)/1000 + "s");
     }
 
@@ -165,6 +166,17 @@ public class ExtractTennisDataService {
     }
 
     public GameInfo getGameInfoDetail(GameInfo info) {
+
+        Random random = new Random();
+
+        try{
+            int wait = random.nextInt(5);
+            log.info("等待2秒");
+            Thread.sleep(wait * 1000);
+        }catch (Exception e) {
+            log.error("出错了!111 ", e);
+        }
+
         log.info("获取详细信息：" + info.getDetailLink());
         try {
             Connection data = httpService.getConnection(info.getDetailLink());
@@ -175,8 +187,6 @@ public class ExtractTennisDataService {
 
             // get event
             parseEventList(doc, info);
-
-            Thread.sleep(15);
         }catch (Exception e) {
             log.error("出错了!", e);
         }
